@@ -165,11 +165,9 @@ namespace Fcool::sync
         //
         inline Thread::Lock::Lock( ) noexcept { }
         inline Thread::Lock::~Lock( ) noexcept { }
-        inline Thread::Lock::Lock( const Lock& ) noexcept { }
-        inline Thread::Lock& Thread::Lock::operator=( const Lock& ) noexcept { return *this; }
         inline void Thread::Lock::lock( ) { }
         inline bool Thread::Lock::try_lock( ) { return false; }
-        inline void Thread::Lock::open( ) { }
+        inline void Thread::Lock::unlock( ) { }
         //
         inline bool wait_for( Thread ) noexcept { return false; }
         inline bool wait_for( _time::duration_fast ) noexcept { return false; }

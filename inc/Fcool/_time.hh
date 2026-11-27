@@ -136,11 +136,11 @@ namespace Fcool::_time
         constexpr duration_fast( __fast_t _secs, __fast_t _frac ) noexcept
         : secs(_secs), frac(_frac) { }
         //
-        friend constexpr duration_fast secs_fast( __fast_t ) noexcept;
-        friend constexpr duration_fast millisecs_fast( __fast_t ) noexcept;
-        friend constexpr duration_fast microsecs_fast( __fast_t ) noexcept;
-        friend constexpr duration_fast nanosecs_fast( __fast_t ) noexcept;
-        friend constexpr duration_fast fast_ticks_fast( __prec_t ) noexcept;
+        friend constexpr duration_fast secs( __fast_t ) noexcept;
+        friend constexpr duration_fast millisecs( __fast_t ) noexcept;
+        friend constexpr duration_fast microsecs( __fast_t ) noexcept;
+        friend constexpr duration_fast nanosecs( __fast_t ) noexcept;
+        friend constexpr duration_fast fast_ticks( __prec_t ) noexcept;
         //
         constexpr __fast_t get_sec_fraction( __fast_t range ) const noexcept {
             return static_cast<__fast_t>(
@@ -262,10 +262,10 @@ namespace Fcool::_time
                 return { zero, zero };
             return { get_ticks( ) % that.get_ticks( ) };
         }
-        constexpr duration_fast operator*( __prec_t that ) const noexcept {
+        constexpr duration_fast operator*( __fast_t that ) const noexcept {
             return { get_ticks( ) * that };
         }
-        constexpr duration_fast operator/( __prec_t that ) const noexcept {
+        constexpr duration_fast operator/( __fast_t that ) const noexcept {
             if ( that == zero )
                 return { zero, zero };
             return { get_ticks( ) / that };
@@ -283,11 +283,11 @@ namespace Fcool::_time
             *this = *this % that;
             return *this;
         }
-        constexpr duration_fast& operator*=( __prec_t that ) noexcept {
+        constexpr duration_fast& operator*=( __fast_t that ) noexcept {
             *this = *this * that;
             return *this;
         }
-        constexpr duration_fast& operator/=( __prec_t that ) noexcept {
+        constexpr duration_fast& operator/=( __fast_t that ) noexcept {
             *this = *this / that;
             return *this;
         }
@@ -296,35 +296,35 @@ namespace Fcool::_time
     /// @brief 
     /// @param s seconds
     /// @return fast duration in seconds
-    constexpr duration_fast secs_fast( __fast_t s ) noexcept {
+    constexpr duration_fast secs( __fast_t s ) noexcept {
         return { s, zero };
     }
     /// @brief 
     /// @param ms milliseconds
     /// @return fast duration in milliseconds
-    constexpr duration_fast millisecs_fast( __fast_t ms ) noexcept {
+    constexpr duration_fast millisecs( __fast_t ms ) noexcept {
         return { ms/_DIFF_MILLISEC_IN_SEC, _fast_frac_get(ms,_DIFF_MILLISEC_IN_SEC) };
     }
     /// @brief 
     /// @param mcs microseconds
     /// @return fast duration in microseconds
-    constexpr duration_fast microsecs_fast( __fast_t mcs ) noexcept {
+    constexpr duration_fast microsecs( __fast_t mcs ) noexcept {
         return { mcs/_DIFF_MICROSEC_IN_SEC, _fast_frac_get(mcs,_DIFF_MICROSEC_IN_SEC) };
     }
     /// @brief 
     /// @param ns nanosecond
     /// @return fast duration in nanosecond
-    constexpr duration_fast nanosecs_fast( __fast_t ns ) noexcept {
+    constexpr duration_fast nanosecs( __fast_t ns ) noexcept {
         return { ns/_DIFF_NANOSEC_IN_SEC, _fast_frac_get(ns,_DIFF_NANOSEC_IN_SEC) };
     }
     /// @brief 
     /// @param fast_ticks total tick count
     /// @return fast duration in ticks
-    constexpr duration_fast fast_ticks_fast( __prec_t fast_ticks ) noexcept {
+    constexpr duration_fast fast_ticks( __prec_t fast_ticks ) noexcept {
         return { fast_ticks };
     }
     /// @brief longest possible time held in fast duration
-    constexpr duration_fast fast_longest = fast_ticks_fast( __max_prec );
+    constexpr duration_fast fast_longest = fast_ticks( __max_prec );
     //
     class duration_prec
     {

@@ -6,41 +6,31 @@
 
 namespace Fcool::sync
 {
-    namespace
+    struct fwh_thread_data
     {
-        struct thread_data
-        {
-            Thread::Func func;
-            Thread::ArgFunc argfunc;
-            Thread::Arg arg;
-        };
-        DWORD WINAPI fwh_thread_func( LPVOID parameter ) noexcept
-        {
-            thread_data* data = static_cast<thread_data*>( parameter );
-            if ( data == nullptr )
-                return 0;
-            if ( data->func != nullptr )
-                data->func( );
-            delete data;
+        Thread::Func func;
+        Thread::ArgFunc argfunc;
+        Thread::Arg arg;
+    };
+    inline DWORD WINAPI fwh_thread_func( LPVOID parameter ) noexcept
+    {
+        fwh_thread_data* data = static_cast<fwh_thread_data*>( parameter );
+        if ( data == nullptr )
             return 0;
-        }
-        DWORD WINAPI fwh_thread_argfunc( LPVOID parameter ) noexcept
-        {
-            thread_data* data = static_cast<thread_data*>( parameter );
-            if ( data == nullptr )
-                return 0;
-            if ( data->argfunc != nullptr )
-                data->argfunc( data->arg );
-            delete data;
+        if ( data->func != nullptr )
+            data->func( );
+        delete data;
+        return 0;
+    }
+    inline DWORD WINAPI fwh_thread_argfunc( LPVOID parameter ) noexcept
+    {
+        fwh_thread_data* data = static_cast<fwh_thread_data*>( parameter );
+        if ( data == nullptr )
             return 0;
-        }
-        constexpr DWORD sleep_millisecs( _time::duration_fast duration ) noexcept
-        {
-            _time::__prec_t millisecs = duration.get_millisecs( );
-            if ( millisecs > MAXDWORD )
-                millisecs = MAXDWORD;
-            return static_cast<DWORD>( millisecs );
-        }
+        if ( data->argfunc != nullptr )
+            data->argfunc( data->arg );
+        delete data;
+        return 0;
     }
     //
     bool is_loaded( ) noexcept { return pass; }
@@ -72,7 +62,7 @@ namespace Fcool::sync
     {
         if ( func == nullptr )
             return;
-        thread_data* data = new thread_data{
+        fwh_thread_data* data = new fwh_thread_data{
             func,
             nullptr,
             zero
@@ -99,7 +89,7 @@ namespace Fcool::sync
     {
         if ( func == nullptr )
             return;
-        thread_data* data = new thread_data{
+        fwh_thread_data* data = new fwh_thread_data{
             nullptr,
             func,
             zero
@@ -121,23 +111,14 @@ namespace Fcool::sync
         impl = reinterpret_cast<void*>( handle );
     }
     //
-    bool Thread::sleep( _time::duration_fast duration )
-    {
-        _time::__fast_t seconds = duration.get_secs( );
-        constexpr _time::__fast_t max_sleep_seconds = MAXDWORD / 1000U;
-        while ( seconds > max_sleep_seconds ) {
-            Sleep( static_cast<DWORD>( max_sleep_seconds * 1000U ) );
-            seconds -= max_sleep_seconds;
+    bool Thread::sleep( _time::duration_fast duration ) {
+        _time::__prec_t ms = duration.get_millisecs( );
+        constexpr DWORD max_sleep_time = INFINITE - unit;
+        while ( ms > max_sleep_time ) {
+            Sleep( max_sleep_time );
+            ms -= max_sleep_time;
         }
-        if ( seconds != zero )
-            Sleep( static_cast<DWORD>( seconds * 1000U ) );
-        DWORD millisecs = sleep_millisecs(
-            _time::millisecs_fast( duration.get_millisecs_( ) )
-        );
-        if ( duration.get_ticks_( ) != zero && millisecs < MAXDWORD )
-            ++millisecs;
-        if ( millisecs != zero )
-            Sleep( millisecs );
+        Sleep( static_cast<DWORD>(ms) );
         return pass;
     }
     //
@@ -178,12 +159,10 @@ namespace Fcool::sync
         );
     }
     //
-    bool wait_for( Thread thread ) noexcept
-    {
+    bool wait_for( Thread thread ) noexcept {
         HANDLE original = static_cast<HANDLE>( static_cast<void*>( thread.impl ) );
         if ( original == nullptr || original == INVALID_HANDLE_VALUE )
             return fail;
-
         HANDLE duplicate = nullptr;
         if (
             DuplicateHandle(
@@ -202,19 +181,40 @@ namespace Fcool::sync
         return WaitForSingleObject( duplicate, INFINITE ) == WAIT_OBJECT_0;
     }
     //
-    bool wait_for( _time::duration_fast duration ) noexcept
-    {
-        return Thread::sleep( duration );
+    bool wait_for( _time::duration_fast duration ) noexcept {
+        HANDLE timer = CreateWaitableTimer( NULL, TRUE, NULL );
+        if ( timer == NULL )
+            return fail;
+        LARGE_INTEGER time;
+        time.QuadPart = -static_cast<LONGLONG>( duration.get_nanosecs( ) / 100ULL );
+        if ( SetWaitableTimer( timer, &time, zero, NULL, NULL, FALSE ) ) {
+            _time::__prec_t ms = duration.get_millisecs( );
+            return (
+                WaitForSingleObject( timer, ms > INFINITE ? INFINITE : static_cast<DWORD>(ms) )
+                != WAIT_FAILED
+            ) && CloseHandle( timer );
+        } else {
+            CloseHandle( timer );
+            return fail;
+        }
     }
     //
-    bool clock_wait_unix( _time::duration_prec target ) noexcept
-    {
-        constexpr _time::duration_fast max_chunk = _time::secs_fast( 4294967U );
+    inline ULONGLONG fwh_get_ticks( ) noexcept {
+        FILETIME filetime;
+        GetSystemTimePreciseAsFileTime( &filetime );
+        ULARGE_INTEGER ticks;
+        ticks.LowPart = filetime.dwLowDateTime;
+        ticks.HighPart = filetime.dwHighDateTime;
+        return ticks.QuadPart;
+    }
+    constexpr ULONGLONG fwh_unix_epoch = 116444736000000000ULL;
+    //
+    bool clock_wait_unix( _time::duration_prec target ) noexcept {
+        constexpr _time::duration_fast max_chunk = _time::secs( 4294967U );
         for ( ;; ) {
             const _time::duration_prec now = clock_now_unix( );
             if ( now >= target )
                 return pass;
-
             const _time::duration_prec remaining = target - now;
             const _time::duration_fast remaining_fast( remaining );
             if ( !Thread::sleep(
@@ -224,13 +224,11 @@ namespace Fcool::sync
         }
     }
     //
-    bool clock_wait_local( _time::duration_prec target ) noexcept
-    {
+    bool clock_wait_local( _time::duration_prec target ) noexcept {
         for ( ;; ) {
             const _time::duration_prec now = clock_now_local( );
             if ( now >= target )
                 return pass;
-
             const _time::duration_prec remaining = target - now;
             const _time::duration_fast remaining_fast( remaining );
             if ( !wait_for( remaining_fast ) )
@@ -238,27 +236,18 @@ namespace Fcool::sync
         }
     }
     //
-    _time::duration_prec clock_now_unix( ) noexcept
-    {
-        FILETIME filetime;
-        GetSystemTimePreciseAsFileTime( &filetime );
-
-        ULARGE_INTEGER ticks;
-        ticks.LowPart = filetime.dwLowDateTime;
-        ticks.HighPart = filetime.dwHighDateTime;
-
-        constexpr ULONGLONG unix_epoch = 116444736000000000ULL;
-        if ( ticks.QuadPart < unix_epoch )
+    _time::duration_prec clock_now_unix( ) noexcept {
+        ULONGLONG ticks = fwh_get_ticks( );
+        if ( ticks < fwh_unix_epoch )
             return _time::duration_prec{ };
-
-        const ULONGLONG elapsed = ticks.QuadPart - unix_epoch;
-        return
+        const ULONGLONG elapsed = ticks - fwh_unix_epoch;
+        return (
             _time::secs_prec( elapsed / 10000000ULL ) +
-            _time::nanosecs_prec( ( elapsed % 10000000ULL ) * 100ULL );
+            _time::nanosecs_prec( ( elapsed % 10000000ULL ) * 100ULL )
+        );
     }
     //
-    _time::duration_prec clock_now_local( ) noexcept
-    {
+    _time::duration_prec clock_now_local( ) noexcept {
         LARGE_INTEGER counter;
         LARGE_INTEGER frequency;
         if (
@@ -268,7 +257,6 @@ namespace Fcool::sync
             counter.QuadPart < zero
         )
             return _time::duration_prec{ };
-
         const _time::__prec_t ticks =
             static_cast<_time::__prec_t>( counter.QuadPart );
         const _time::__prec_t freq =
@@ -277,7 +265,6 @@ namespace Fcool::sync
         const _time::__prec_t remainder = ticks % freq;
         const _time::__prec_t nanosecs =
             ( remainder * 1000000000ULL ) / freq;
-
         return
             _time::secs_prec( secs ) +
             _time::nanosecs_prec( nanosecs );
