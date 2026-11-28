@@ -1,6 +1,6 @@
 /**
  * @headerfile Fcool/_type.hh
- * @version 1.0
+ * @version 1.1
  * @author Matias Viitanen
  * @since Fcool 0.1
  * @copyright (C) Matias Viitanen 2025 - 2026
@@ -186,6 +186,24 @@ namespace _meta
     struct logical_is_convertible
         : _bool< logical_is_convertible_help< T_To, T_From >::getter > { };
     //
+    template < typename T_To, typename T_From >
+    struct logical_is_assignable_help
+    {
+    private:
+        template <
+            typename U,
+            typename = decltype( declval< U >( ) = declval< T_From >( ) )
+        >
+        static _bool_pass test( int );
+        template < typename >
+        static _bool_fail test( ... );
+    public:
+        static constexpr bool getter = decltype( test< T_To >( zero ) )::vl;
+    };
+    template < typename T_To, typename T_From >
+    struct logical_is_assignable
+        : _bool< logical_is_assignable_help< T_To, T_From >::getter > { };
+    //
     template < typename T_Tp > struct trait_remove_lval : _tp_t< T_Tp > { };
     template < typename T_Tp > struct trait_remove_lval<T_Tp&> : _tp_t< T_Tp > { };
     template < typename T_Tp > struct trait_remove_rval : _tp_t< T_Tp > { };
@@ -260,6 +278,7 @@ namespace _meta
     template < typename T_Tp > struct trait_is_array : _bool_fail { };
     template < typename T_Tp > struct trait_is_array<T_Tp[]> : _bool_pass { };
     template < typename T_Tp, size_t T_span > struct trait_is_array<T_Tp[T_span]> : _bool_pass { };
+    //
 };
 
 
@@ -380,22 +399,58 @@ template < typename T_Tp > constexpr bool _Check_arr =   _vl_get< _meta::trait_i
 
 /// @brief Assign a lvalue to a type
 /// @tparam T_Tp 
-template < typename T_Tp > using _Place_l = T_Tp&;
+template < typename T_Tp > using _Place_l = _Clear_ref<T_Tp>&;
 /// @brief Assign a rvalue to a type
 /// @tparam T_Tp 
-template < typename T_Tp > using _Place_r = T_Tp&&;
-/// @brief Assign a pointer to a type
+template < typename T_Tp > using _Place_r = _Clear_ref<T_Tp>&&;
+/// @brief Assign a pointer layer to a type
 /// @tparam T_Tp 
 template < typename T_Tp > using _Place_p = T_Tp*;
 /// @brief Assign a constant qualifier to a type
 /// @tparam T_Tp 
-template < typename T_Tp > using _Place_c = const T_Tp;
+template < typename T_Tp > using _Place_c = const _Clear_c< T_Tp >;
+/// @brief Make a type only constant qualified
+/// @tparam T_Tp 
+template < typename T_Tp > using _Place_c_ex = const _Clear_cv< T_Tp >;
 /// @brief Assign a volatile qualifier to a type
 /// @tparam T_Tp 
-template < typename T_Tp > using _Place_v = volatile T_Tp;
+template < typename T_Tp > using _Place_v = volatile _Clear_v< T_Tp >;
+/// @brief Make a type only volatile qualified
+/// @tparam T_Tp 
+template < typename T_Tp > using _Place_v_ex = volatile _Clear_cv< T_Tp >;
 /// @brief Assign constant and volatile qualifiers to a type
 /// @tparam T_Tp 
-template < typename T_Tp > using _Place_cv = const volatile T_Tp;
+template < typename T_Tp >
+using _Place_cv = const volatile _Clear_cv< T_Tp >;
+
+template < typename T_Tp >
+using _Place_ex_c = _Place_c_ex< _Clear_ref< T_Tp > >;
+template < typename T_Tp >
+using _Place_ex_v = _Place_v_ex< _Clear_ref< T_Tp > >;
+template < typename T_Tp >
+using _Place_ex_cv = _Place_cv< _Clear_ref< T_Tp > >;
+template < typename T_Tp >
+using _Place_ex_l = _Clear_cv< _Place_l< T_Tp > >;
+template < typename T_Tp >
+using _Place_ex_lc = _Place_c_ex< _Place_l< T_Tp > >;
+template < typename T_Tp >
+using _Place_ex_lv = _Place_v_ex< _Place_l< T_Tp > >;
+template < typename T_Tp >
+using _Place_ex_lcv = _Place_cv< _Place_l< T_Tp > >;
+template < typename T_Tp >
+using _Place_ex_r = _Clear_cv< _Place_r< T_Tp > >;
+template < typename T_Tp >
+using _Place_ex_rc = _Place_c_ex< _Place_r< T_Tp > >;
+template < typename T_Tp >
+using _Place_ex_rv = _Place_v_ex< _Place_r< T_Tp > >;
+template < typename T_Tp >
+using _Place_ex_rcv = _Place_cv< _Place_r< T_Tp > >;
+/// @brief set the qualifiers of the type
+/// @tparam T_Tp 
+template < typename T_Tp, bool C, bool V >
+using _Set_cv =
+    _cond< C, _cond< V, _Place_cv< T_Tp >, _Place_c_ex< T_Tp > >, _cond< V, _Place_v_ex< T_Tp >, _Clear_cv< T_Tp > > >;
+
 /// @brief check if two types are a match regardless of qualifiers
 /// @tparam T_Tp 
 /// @tparam T__Tp 
@@ -431,16 +486,32 @@ template < typename T_Tp > constexpr bool is_optimal                     = !_Che
 /// @brief check if type is constructible with given typed arguments
 /// @tparam T_Tp 
 /// @tparam ...TS_Tp argumens
-template < typename T_Tp, typename... TS_Tp> constexpr bool is_constructible = _vl_get< _meta::logical_is_constructible< T_Tp, TS_Tp... > >;
+template < typename T_Tp, typename... TS_Tp> constexpr bool is_constructible = _vl_get< _meta::logical_is_constructible< _Clear_cvref<T_Tp>, TS_Tp... > >;
 /// @brief check if type is convertible to another type
 /// @tparam T_From 
 /// @tparam T_To 
-template < typename T_From, typename T_To > constexpr bool is_convertible = _vl_get< _meta::logical_is_convertible< T_From, T_To > >;
+template < typename T_From, typename T_To > constexpr bool is_convertible = _vl_get< _meta::logical_is_convertible< _Clear_cvref<T_To>, T_From > >;
+/// @brief check if type is assignable from another type
+/// @tparam T_From 
+/// @tparam T_To 
+template < typename T_From, typename T_To > constexpr bool is_assignable = _vl_get< _meta::logical_is_assignable< T_To, T_From > >;
 /// @brief get a type with another types qualifiers
 /// @tparam T_From 
 /// @tparam T_To 
 template < typename T_From, typename T_To >
-using copy_cv = _cond< _Check_c< T_From >, _cond< _Check_v< T_From >, const volatile _Clear_cv< T_To >, const _Clear_cv< T_To > >, _cond< _Check_v< T_From >, volatile _Clear_cv< T_To >, _Clear_cv< T_To > > >;
+using copy_cv = _Set_cv< T_To, _Check_c< T_From >, _Check_v< T_From > >;
+
+template < typename T_Tp > concept check_constructible_copyable = is_constructible< T_Tp, _Place_ex_lc< T_Tp > >;
+template < typename T_Tp > concept check_constructible_moveable = is_constructible< T_Tp, _Place_ex_r< T_Tp > >;
+template < typename T_Tp > concept check_constructible_ = check_constructible_copyable< T_Tp > && check_constructible_moveable< T_Tp >;
+template < typename T_Tp > concept check_assignable_copyable = is_assignable< T_Tp, _Place_ex_lc< T_Tp > >;
+template < typename T_Tp > concept check_assignable_moveable = is_assignable< T_Tp, _Place_ex_r< T_Tp > >;
+template < typename T_Tp > concept check_assignable_ = check_assignable_copyable< T_Tp > && check_assignable_moveable< T_Tp >;
+template < typename T_Tp > concept check_general_copyable = is_assignable< T_Tp, _Place_ex_lc< T_Tp > >;
+template < typename T_Tp > concept check_general_moveable = is_assignable< T_Tp, _Place_ex_r< T_Tp > >;
+template < typename T_Tp > concept check_general_ = check_general_copyable< T_Tp > && check_general_moveable< T_Tp >;
+
+
 
 /// @brief move helper
 /// @tparam T_Tp 
