@@ -381,9 +381,9 @@ struct ptr : public _raw_ptr<T_Tp>
     }
 };
 /// @brief ### general handle pointer type
-using handle = _raw_obj<void>;
+using handle_m = _raw_obj<void>;
 /// @brief ### general buffer pointer type
-using buffer = _raw_arr<void>;
+using buffer_m = _raw_arr<void>;
 /// @brief ### constant handle pointer type
 using handle_c = _raw_obj<const void>;
 /// @brief ### constant buffer pointer type
@@ -580,7 +580,7 @@ constexpr _raw_arr<T_As> cast( const _raw_arr<T_Tp>& mem ) {
 /// @param mem 
 /// @return a general handle
 template < typename T_Tp >
-constexpr handle cast_handle( const _raw_obj<T_Tp>& mem ) {
+constexpr handle_m cast_handle_m( const _raw_obj<T_Tp>& mem ) {
     return cast<void>( mem );
 }
 /// @brief #### lightweight general buffer casting
@@ -588,7 +588,7 @@ constexpr handle cast_handle( const _raw_obj<T_Tp>& mem ) {
 /// @param mem 
 /// @return a general buffer
 template < typename T_Tp >
-constexpr buffer cast_buffer( const _raw_arr<T_Tp>& mem ) {
+constexpr buffer_m cast_buffer_m( const _raw_arr<T_Tp>& mem ) {
     return cast<void>( mem );
 }
 /// @brief #### lightweight constant handle casting
@@ -771,9 +771,9 @@ constexpr void flush_obj( _raw_obj<T_Tp> mem ) {
 /// @warning #### must be deallocated using delete_handle
 /// @param size 
 /// @return 
-inline handle create_handle( addr_t size ) {
+inline handle_m create_handle( addr_t size ) {
     #if FCOOLMACRO_MEMEXCEPT
-        handle mem(::operator new( size ));
+        handle_m mem(::operator new( size ));
         if ( !mem )
             except( );
         return mem;
@@ -786,9 +786,9 @@ inline handle create_handle( addr_t size ) {
 /// @param size 
 /// @param align 
 /// @return 
-inline handle create_handle( addr_t size, _ali_t align ) {
+inline handle_m create_handle( addr_t size, _ali_t align ) {
     #if FCOOLMACRO_MEMEXCEPT
-        handle mem(::operator new( size, std::align_val_t{ align } ));
+        handle_m mem(::operator new( size, std::align_val_t{ align } ));
         if ( !mem )
             except( );
         return mem;
@@ -817,7 +817,7 @@ constexpr _raw_obj<T_Tp> create_obj( TS_Args&&... args ) {
 template < typename T_Tp, typename... TS_Args >
 constexpr _raw_obj<T_Tp> make_obj( TS_Args&&... args ) {
     #if FCOOLMACRO_MEMEXCEPT
-        handle mem( new T_Tp( _type::forward<TS_Args>( args )... ) );
+        handle_m mem( new T_Tp( _type::forward<TS_Args>( args )... ) );
         if ( !mem )
             except( );
         return mem;
@@ -827,14 +827,14 @@ constexpr _raw_obj<T_Tp> make_obj( TS_Args&&... args ) {
 }
 /// @brief ### frees allocated handle
 /// @param mem 
-inline void delete_handle( handle mem ) noexcept {
-    return ::operator delete( static_cast<void*>( mem ) );
+inline void delete_handle( handle_c mem ) noexcept {
+    return ::operator delete( const_cast<void*>( static_cast<const void*>( mem ) ) );
 }
 /// @brief ### frees aligned allocated handle
 /// @param mem 
 /// @param align 
-inline void delete_handle( handle mem, _ali_t align ) noexcept {
-    return ::operator delete( static_cast<void*>( mem ), std::align_val_t{ align } );
+inline void delete_handle( handle_c mem, _ali_t align ) noexcept {
+    return ::operator delete( const_cast<void*>( static_cast<const void*>( mem ) ), std::align_val_t{ align } );
 }
 /// @brief ### frees and deconstructs allocated object
 /// @warning ### doesn't work on objects created with make_obj( ... )
@@ -881,9 +881,9 @@ constexpr void flush_arr( _raw_arr<T_Tp> mem, addr_t span ) {
 /// @warning #### must be deallocated using delete_buffer
 /// @param size 
 /// @return 
-inline buffer create_buffer( addr_t size ) {
+inline buffer_m create_buffer( addr_t size ) {
     #if FCOOLMACRO_MEMEXCEPT
-        buffer mem(::operator new[]( size ));
+        buffer_m mem(::operator new[]( size ));
         if ( !mem )
             except( );
         return mem;
@@ -896,9 +896,9 @@ inline buffer create_buffer( addr_t size ) {
 /// @param size 
 /// @param align 
 /// @return 
-inline buffer create_buffer( addr_t size, _ali_t align ) {
+inline buffer_m create_buffer( addr_t size, _ali_t align ) {
     #if FCOOLMACRO_MEMEXCEPT
-        buffer mem(::operator new[]( size, std::align_val_t{ align } ));
+        buffer_m mem(::operator new[]( size, std::align_val_t{ align } ));
         if ( !mem )
             except( );
         return mem;
@@ -929,7 +929,7 @@ constexpr _raw_arr<T_Tp> create_arr( addr_t span, TS_Args&&... args ) {
 template < typename T_Tp, typename... TS_Args >
 constexpr _raw_arr<T_Tp> make_arr( addr_t span, TS_Args&&... args ) {
     #if FCOOLMACRO_MEMEXCEPT
-        buffer mem( new T_Tp[span]( _type::forward<TS_Args>( args )... ) );
+        buffer_c mem( new T_Tp[span]( _type::forward<TS_Args>( args )... ) );
         if ( !mem )
             except( );
         return mem;
@@ -939,14 +939,14 @@ constexpr _raw_arr<T_Tp> make_arr( addr_t span, TS_Args&&... args ) {
 }
 /// @brief ### frees allocated buffer
 /// @param mem 
-inline void delete_buffer( buffer mem ) noexcept {
-    return ::operator delete[]( static_cast<void*>( mem ) );
+inline void delete_buffer( buffer_c mem ) noexcept {
+    return ::operator delete[]( const_cast<void*>( static_cast<const void*>( mem ) ) );
 }
 /// @brief ### frees aligned allocated buffer
 /// @param mem 
 /// @param align 
-inline void delete_buffer( buffer mem, _ali_t align ) noexcept {
-    return ::operator delete[]( static_cast<void*>( mem ), std::align_val_t{ align } );
+inline void delete_buffer( buffer_c mem, _ali_t align ) noexcept {
+    return ::operator delete[]( const_cast<void*>( static_cast<const void*>( mem ) ), std::align_val_t{ align } );
 }
 /// @brief ### frees and deconstructs allocated array
 /// @warning ### doesn't work on arrays created with make_arr( ... )
@@ -972,37 +972,37 @@ constexpr void free_arr( _raw_arr<T_Tp> mem ) {
 #pragma region // smartptr
 
 /// @brief allocated handle that will automatically be freed on cleanup
-struct smart_handle : public handle
+struct smart_handle : public handle_c
 {
     inline smart_handle( addr_t size )
-    : handle( create_handle( size ) ) { }
+    : handle_c( create_handle( size ) ) { }
     constexpr smart_handle( const smart_handle& ) noexcept = delete;
     constexpr smart_handle( smart_handle&& that ) noexcept
-    : handle( that ) { }
+    : handle_c( that ) { }
     inline ~smart_handle( ) {
         delete_handle( *this );
     }
 };
 /// @brief allocated buffer that will automatically be freed on cleanup
-struct smart_buffer : public buffer
+struct smart_buffer : public buffer_c
 {
     inline smart_buffer( addr_t size )
-    : buffer( create_buffer( size ) ) { }
+    : buffer_c( create_buffer( size ) ) { }
     constexpr smart_buffer( const smart_buffer& ) noexcept = delete;
     constexpr smart_buffer( smart_buffer&& that ) noexcept
-    : buffer( that ) { }
+    : buffer_c( that ) { }
     inline ~smart_buffer( ) {
         delete_buffer( *this );
     }
 };
 /// @brief allocated handle that will automatically be freed on cleanup
-struct smart_aligned_handle : public handle
+struct smart_aligned_handle : public handle_c
 {
     inline smart_aligned_handle( addr_t size, _ali_t align )
-    : handle( create_handle( size, align ) ), ali(align) { }
+    : handle_c( create_handle( size, align ) ), ali(align) { }
     constexpr smart_aligned_handle( const smart_aligned_handle& ) noexcept = delete;
     constexpr smart_aligned_handle( smart_aligned_handle&& that ) noexcept
-    : handle( that ), ali( that.ali ) { }
+    : handle_c( that ), ali( that.ali ) { }
     inline ~smart_aligned_handle( ) {
         delete_handle( *this, ali );
     }
@@ -1011,13 +1011,13 @@ protected:
     const _ali_t ali;
 };
 /// @brief allocated buffer that will automatically be freed on cleanup
-struct smart_aligned_buffer : public buffer
+struct smart_aligned_buffer : public buffer_c
 {
     inline smart_aligned_buffer( addr_t size, _ali_t align )
-    : buffer( create_buffer( size, align ) ), ali(align) { }
+    : buffer_c( create_buffer( size, align ) ), ali(align) { }
     constexpr smart_aligned_buffer( const smart_aligned_buffer& ) noexcept = delete;
     constexpr smart_aligned_buffer( smart_aligned_buffer&& that ) noexcept
-    : buffer( that ), ali( that.ali ) { }
+    : buffer_c( that ), ali( that.ali ) { }
     inline ~smart_aligned_buffer( ) {
         delete_buffer( *this, ali );
     }

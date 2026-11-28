@@ -110,7 +110,7 @@ namespace Fcool::sync
             bool try_lock( );
             void unlock( );
         private:
-            _mem::handle impl;
+            _mem::handle_m impl;
         };
         /// @brief automatic lock
         class AutoLock
@@ -123,7 +123,7 @@ namespace Fcool::sync
                 { lock.unlock(); }
         };
     private:
-        _mem::handle impl;
+        _mem::handle_m impl;
         friend bool wait_for( Thread ) noexcept;
     };
     /// @brief wait for a thread to finish

@@ -172,12 +172,12 @@ namespace Fcool::_data
         }
         /// @brief 
         /// @return the number of elements
-        constexpr size_t span( ) const noexcept {
+        constexpr addr_t span( ) const noexcept {
             return n;
         }
         /// @brief 
         /// @return the number of elements that can be held in currently allocated storage
-        constexpr size_t capacity( ) const noexcept {
+        constexpr addr_t capacity( ) const noexcept {
             return c;
         }
         /// @brief reduces memory usage by freeing unused memory
@@ -591,6 +591,25 @@ namespace Fcool::_data
     template < typename T_Tp >
     constexpr vect<T_Tp> __raw_vect( _mem::_raw_arr<T_Tp> arr, addr_t span ) noexcept {
         return { arr_area<T_Tp>( arr, span, span ) };
+    }
+    /// @brief get the vector pointer, size and capacity as arr_area
+    /// @tparam T_Tp 
+    /// @param vec 
+    /// @return arr_area that contains the allocated vector data
+    template < typename T_Tp >
+    constexpr arr_area<T_Tp> __vect_get_area( vect<T_Tp> vec ) noexcept {
+        return { vec.view( ), vec.capacity( ) };
+    }
+    /// @brief get the vector pointer, size and capacity as arr_area
+    /// @warning clears the vector
+    /// @tparam T_Tp 
+    /// @param vec 
+    /// @return arr_area that contains the allocated vector data
+    template < typename T_Tp >
+    constexpr arr_area<T_Tp> __vect_get_area_and_clear( vect<T_Tp> vec ) noexcept {
+        arr_area<T_Tp> r = __vect_get_area( vec );
+        vec.__drop( );
+        return r;
     }
     //
 }

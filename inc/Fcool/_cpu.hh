@@ -398,6 +398,10 @@ template < typename T_Tp > concept check_any_numb = check_any_nat<T_Tp> || check
 template < typename T_Tp > concept check_reg_real = check_reg_int<T_Tp> || check_reg_flt<T_Tp>;
 /// @brief enforced real value check
 template < typename T_Tp > concept check_any_real = check_any_int<T_Tp> || check_any_flt<T_Tp>;
+/// @brief enforced register check
+template < typename T_Tp > concept check_reg = check_reg_nat<T_Tp> || check_reg_int<T_Tp> || check_reg_flt<T_Tp>;
+/// @brief enforced value check
+template < typename T_Tp > concept check_any = check_any_nat<T_Tp> || check_any_int<T_Tp> || check_any_flt<T_Tp>;
 /// @brief enforced boolean check
 template < typename T_Tp > concept check_bool = _type::is_bool< T_Tp >;
 /// @brief enforced at least wordsize numeral value check

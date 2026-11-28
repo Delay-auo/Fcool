@@ -115,7 +115,7 @@ namespace Fcool::_text
     /// @param s pointer string
     template < _cpu::check_any_chr T_Chr >
     inline void _free_str( _str<T_Chr> s ) noexcept {
-        _mem::delete_buffer( _mem::cast_buffer( s ) );
+        _mem::delete_buffer( _mem::cast_buffer_c( s ) );
     }
     /// @brief allocates a new base-range pointer string
     /// @warning must be deallocated using free_ptr_base
