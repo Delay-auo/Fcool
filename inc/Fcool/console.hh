@@ -581,14 +581,14 @@ namespace Fcool::console
     /// @param output base range pointer string
     /// @param length max input characters
     /// @return characters read
-    _text::len_t read_msg( _text::ptr_base, _text::len_t ) noexcept;
+    _text::len_t read_msg( _text::ptr_code, _text::len_t ) noexcept;
     /// @brief read user input
     /// @param output wide range pointer string
     /// @param length max input characters
     /// @return characters read
     _text::len_t read_msg( _text::ptr_wide, _text::len_t ) noexcept;
     extern bool __read_key_default_is_wide;
-    bool _read_key_base( key_info_t& ) noexcept;
+    bool _read_key_code( key_info_t& ) noexcept;
     bool _read_key_wide( key_info_t& ) noexcept;
     /// @brief clear the read_key queue
     /// @return weather the queue was cleared
@@ -600,7 +600,7 @@ namespace Fcool::console
     /// @param output base range string pointer
     /// @param length output characters
     /// @return written characters
-    _text::len_t write_msg( _text::str_base, _text::len_t ) noexcept;
+    _text::len_t write_msg( _text::str_code, _text::len_t ) noexcept;
     /// @brief write a single console message
     /// @param output wide range string pointer
     /// @param length output characters
@@ -610,7 +610,7 @@ namespace Fcool::console
     /// @param output base range string pointer
     /// @param length output characters
     /// @return written characters
-    _text::len_t write_err( _text::str_base, _text::len_t ) noexcept;
+    _text::len_t write_err( _text::str_code, _text::len_t ) noexcept;
     /// @brief write a single console error
     /// @param output wide range string pointer
     /// @param length output characters
@@ -635,16 +635,16 @@ namespace Fcool::console
         inline bool beep( ) noexcept { return fail; }
         inline bool beep( _cpu::int_quad, _time::duration_fast ) noexcept { return fail; }
         inline bool clear( ) noexcept { return fail; }
-        inline _text::len_t read_msg( _text::ptr_base, _text::len_t ) noexcept { return zero; }
+        inline _text::len_t read_msg( _text::ptr_code, _text::len_t ) noexcept { return zero; }
         inline _text::len_t read_msg( _text::ptr_wide, _text::len_t ) noexcept { return zero; }
         inline bool __read_key_default_is_wide = fail;
-        inline bool _read_key_base( key_info_t& ) noexcept { return fail; }
+        inline bool _read_key_code( key_info_t& ) noexcept { return fail; }
         inline bool _read_key_wide( key_info_t& ) noexcept { return fail; }
         inline bool flush_keys( ) noexcept { return fail; }
         inline bool reset_color( ) noexcept { return fail; }
-        inline _text::len_t write_msg( _text::str_base, _text::len_t ) noexcept { return zero; }
+        inline _text::len_t write_msg( _text::str_code, _text::len_t ) noexcept { return zero; }
         inline _text::len_t write_msg( _text::str_wide, _text::len_t ) noexcept { return zero; }
-        inline _text::len_t write_err( _text::str_base, _text::len_t ) noexcept { return zero; }
+        inline _text::len_t write_err( _text::str_code, _text::len_t ) noexcept { return zero; }
         inline _text::len_t write_err( _text::str_wide, _text::len_t ) noexcept { return zero; }
         namespace _property
         {
@@ -712,21 +712,21 @@ namespace Fcool::console
     }
     template < _cpu::check_any_nat T_Nat >
     inline _text::len_t __write( T_Nat v, _text::len_t min_w = unit ) {
-        return __write<_cpu::chr_base>( _text::edit_base{ v, min_w } );
+        return __write<_cpu::chr_code>( _text::edit_code{ v, min_w } );
     }
     template < _cpu::check_any_int T_Int >
     inline _text::len_t __write( T_Int v, _text::len_t min_w = unit ) {
-        return __write<_cpu::chr_base>( _text::edit_base{ v, min_w } );
+        return __write<_cpu::chr_code>( _text::edit_code{ v, min_w } );
     }
     template < _cpu::check_any_flt T_Flt >
     inline _text::len_t __write( T_Flt v, size_t prec = _text::__flt_default_prec( _cpu::val_flt_fraction<T_Flt>, 10 ) ) {
-        return __write<_cpu::chr_base>( _text::edit_base{ v, prec } );
+        return __write<_cpu::chr_code>( _text::edit_code{ v, prec } );
     }
     template < _cpu::check_bool T_Bool >
     inline _text::len_t __write( T_Bool v ) {
-        return __write<_cpu::chr_base>( _text::edit_base{ v } );
+        return __write<_cpu::chr_code>( _text::edit_code{ v } );
     }
-    template < _cpu::check_any_chr T_Chr = _cpu::chr_base >
+    template < _cpu::check_any_chr T_Chr = _cpu::chr_code >
     inline _text::len_t __write( _mem::_raw_ptr<void> ptr ) {
         return __write<T_Chr>( _text::_edit<T_Chr>( ptr ) );
     }
@@ -757,24 +757,24 @@ namespace Fcool::console
         return write_err( edit.str( ), edit.len( ) );
     }
     template < _cpu::check_any_chr T_Chr >
-    inline _text::len_t __error( _text::edit_base&& edit) {
+    inline _text::len_t __error( _text::edit_code&& edit) {
         return __error<T_Chr>( edit );
     }
     template < _cpu::check_any_nat T_Nat >
     inline _text::len_t __error( T_Nat v, _text::len_t min_w = unit ) {
-        return __error<_cpu::chr_base>( _text::edit_base{ v, min_w } );
+        return __error<_cpu::chr_code>( _text::edit_code{ v, min_w } );
     }
     template < _cpu::check_any_int T_Int >
     inline _text::len_t __error( T_Int v, _text::len_t min_w = unit ) {
-        return __error<_cpu::chr_base>( _text::edit_base{ v, min_w } );
+        return __error<_cpu::chr_code>( _text::edit_code{ v, min_w } );
     }
     template < _cpu::check_any_flt T_Flt >
     inline _text::len_t __error( T_Flt v, size_t prec = _text::__flt_default_prec( _cpu::val_flt_fraction<T_Flt>, 10 ) ) {
-        return __error<_cpu::chr_base>( _text::edit_base{ v, prec } );
+        return __error<_cpu::chr_code>( _text::edit_code{ v, prec } );
     }
     template < _cpu::check_bool T_Bool >
     inline _text::len_t __error( T_Bool v ) {
-        return __error<_cpu::chr_base>( _text::edit_base{ v } );
+        return __error<_cpu::chr_code>( _text::edit_code{ v } );
     }
     //
     /// @brief writes text on the console
@@ -798,13 +798,13 @@ namespace Fcool::console
         return len;
     }
     //
-    constexpr _text::len_t __read_base_maxlen = 256;
+    constexpr _text::len_t __read_code_maxlen = 256;
     constexpr _text::len_t __read_wide_maxlen = 192;
     /// @brief read user input string
     /// @return 
-    inline _text::bstring _readb( ) {
-        _cpu::chr_base buffer[__read_base_maxlen];
-        Fcool::_text::len_t input_len = read_msg( buffer, __read_base_maxlen );
+    inline _text::cstring _readc( ) {
+        _cpu::chr_code buffer[__read_code_maxlen];
+        Fcool::_text::len_t input_len = read_msg( buffer, __read_code_maxlen );
         return { buffer, input_len };
     }
     /// @brief read user input string
@@ -819,13 +819,13 @@ namespace Fcool::console
         if ( __read_key_default_is_wide )
             return _read_key_wide( out );
         else
-            return _read_key_base( out );
+            return _read_key_code( out );
     }
-    inline bool _read_key_pressed_base( key_info_t& out, size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
+    inline bool _read_key_pressed_code( key_info_t& out, size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
         key_info_t key;
         size_t i = zero;
         while ( query_limit > i ) {
-            if ( _read_key_base( key ) ) {
+            if ( _read_key_code( key ) ) {
                 if ( is_pressed( key ) ) {
                     out = key;
                     return pass;
@@ -855,13 +855,13 @@ namespace Fcool::console
         if ( __read_key_default_is_wide )
             return _read_key_pressed_wide( out, query_limit );
         else
-            return _read_key_pressed_base( out, query_limit );
+            return _read_key_pressed_code( out, query_limit );
     }
-    inline bool _read_key_released_base( key_info_t& out, size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
+    inline bool _read_key_released_code( key_info_t& out, size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
         key_info_t key;
         size_t i = zero;
         while ( query_limit > i ) {
-            if ( _read_key_base( key ) ) {
+            if ( _read_key_code( key ) ) {
                 if ( is_released( key ) ) {
                     out = key;
                     return pass;
@@ -891,13 +891,13 @@ namespace Fcool::console
         if ( __read_key_default_is_wide )
             return _read_key_released_wide( out, query_limit );
         else
-            return _read_key_released_base( out, query_limit );
+            return _read_key_released_code( out, query_limit );
     }
-    inline bool read_key_base( key_info_t& out, size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
+    inline bool read_key_code( key_info_t& out, size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
         key_info_t key;
         size_t i = zero;
         while ( query_limit > i ) {
-            if ( _read_key_base( key ) ) {
+            if ( _read_key_code( key ) ) {
                 if ( is_vk( key ) ) {
                     out = key;
                     return pass;
@@ -927,13 +927,13 @@ namespace Fcool::console
         if ( __read_key_default_is_wide )
             return _read_key_wide( out );
         else
-            return _read_key_base( out );
+            return _read_key_code( out );
     }
-    inline bool read_key_pressed_base( key_info_t& out, size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
+    inline bool read_key_pressed_code( key_info_t& out, size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
         key_info_t key;
         size_t i = zero;
         while ( query_limit > i ) {
-            if ( _read_key_base( key ) ) {
+            if ( _read_key_code( key ) ) {
                 if ( is_vk( key ) && is_pressed( key ) ) {
                     out = key;
                     return pass;
@@ -963,13 +963,13 @@ namespace Fcool::console
         if ( __read_key_default_is_wide )
             return read_key_pressed_wide( out, query_limit );
         else
-            return read_key_pressed_base( out, query_limit );
+            return read_key_pressed_code( out, query_limit );
     }
-    inline bool read_key_released_base( key_info_t& out, size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
+    inline bool read_key_released_code( key_info_t& out, size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
         key_info_t key;
         size_t i = zero;
         while ( query_limit > i ) {
-            if ( _read_key_base( key ) ) {
+            if ( _read_key_code( key ) ) {
                 if ( is_vk( key ) && is_released( key ) ) {
                     out = key;
                     return pass;
@@ -999,19 +999,19 @@ namespace Fcool::console
         if ( __read_key_default_is_wide )
             return read_key_released_wide( out, query_limit );
         else
-            return read_key_released_base( out, query_limit );
+            return read_key_released_code( out, query_limit );
     }
     //
-    inline key_info_t _read_key_base( bool& r ) noexcept {
+    inline key_info_t _read_key_code( bool& r ) noexcept {
         key_info_t key;
-        if ( ( r = _read_key_base( key ) ) )
+        if ( ( r = _read_key_code( key ) ) )
             return key;
         else
             return { };
     }
-    inline key_info_t _read_key_base( ) noexcept {
+    inline key_info_t _read_key_code( ) noexcept {
         key_info_t key;
-        if ( _read_key_base( key ) )
+        if ( _read_key_code( key ) )
             return key;
         else
             return { };
@@ -1034,24 +1034,24 @@ namespace Fcool::console
         if ( __read_key_default_is_wide )
             return _read_key_wide( r );
         else
-            return _read_key_base( r );
+            return _read_key_code( r );
     }
     inline key_info_t _read_key( ) noexcept {
         if ( __read_key_default_is_wide )
             return _read_key_wide( );
         else
-            return _read_key_base( );
+            return _read_key_code( );
     }
-    inline key_info_t _read_key_pressed_base( bool& r, size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
+    inline key_info_t _read_key_pressed_code( bool& r, size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
         key_info_t key;
-        if ( ( r = _read_key_pressed_base( key, query_limit ) ) )
+        if ( ( r = _read_key_pressed_code( key, query_limit ) ) )
             return key;
         else
             return { };
     }
-    inline key_info_t _read_key_pressed_base( size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
+    inline key_info_t _read_key_pressed_code( size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
         key_info_t key;
-        if ( _read_key_pressed_base( key, query_limit ) )
+        if ( _read_key_pressed_code( key, query_limit ) )
             return key;
         else
             return { };
@@ -1084,16 +1084,16 @@ namespace Fcool::console
         else
             return { };
     }
-    inline key_info_t _read_key_released_base( bool& r, size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
+    inline key_info_t _read_key_released_code( bool& r, size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
         key_info_t key;
-        if ( ( r = _read_key_released_base( key, query_limit ) ) )
+        if ( ( r = _read_key_released_code( key, query_limit ) ) )
             return key;
         else
             return { };
     }
-    inline key_info_t _read_key_released_base( size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
+    inline key_info_t _read_key_released_code( size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
         key_info_t key;
-        if ( _read_key_released_base( key, query_limit ) )
+        if ( _read_key_released_code( key, query_limit ) )
             return key;
         else
             return { };
@@ -1126,16 +1126,16 @@ namespace Fcool::console
         else
             return { };
     }
-    inline key_info_t read_key_base( bool& r, size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
+    inline key_info_t read_key_code( bool& r, size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
         key_info_t key;
-        if ( ( r = read_key_base( key, query_limit ) ) )
+        if ( ( r = read_key_code( key, query_limit ) ) )
             return key;
         else
             return { };
     }
-    inline key_info_t read_key_base( size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
+    inline key_info_t read_key_code( size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
         key_info_t key;
-        if ( read_key_base( key, query_limit ) )
+        if ( read_key_code( key, query_limit ) )
             return key;
         else
             return { };
@@ -1158,24 +1158,24 @@ namespace Fcool::console
         if ( __read_key_default_is_wide )
             return _read_key_wide( r );
         else
-            return _read_key_base( r );
+            return _read_key_code( r );
     }
     inline key_info_t read_key( ) noexcept {
         if ( __read_key_default_is_wide )
             return _read_key_wide( );
         else
-            return _read_key_base( );
+            return _read_key_code( );
     }
-    inline key_info_t read_key_pressed_base( bool& r, size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
+    inline key_info_t read_key_pressed_code( bool& r, size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
         key_info_t key;
-        if ( ( r = read_key_pressed_base( key, query_limit ) ) )
+        if ( ( r = read_key_pressed_code( key, query_limit ) ) )
             return key;
         else
             return { };
     }
-    inline key_info_t read_key_pressed_base( size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
+    inline key_info_t read_key_pressed_code( size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
         key_info_t key;
-        if ( read_key_pressed_base( key, query_limit ) )
+        if ( read_key_pressed_code( key, query_limit ) )
             return key;
         else
             return { };
@@ -1208,16 +1208,16 @@ namespace Fcool::console
         else
             return { };
     }
-    inline key_info_t read_key_released_base( bool& r, size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
+    inline key_info_t read_key_released_code( bool& r, size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
         key_info_t key;
-        if ( ( r = read_key_released_base( key, query_limit ) ) )
+        if ( ( r = read_key_released_code( key, query_limit ) ) )
             return key;
         else
             return { };
     }
-    inline key_info_t read_key_released_base( size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
+    inline key_info_t read_key_released_code( size_t query_limit = _cpu::val_max_int<_cpu::int_dual> ) noexcept {
         key_info_t key;
-        if ( read_key_released_base( key, query_limit ) )
+        if ( read_key_released_code( key, query_limit ) )
             return key;
         else
             return { };

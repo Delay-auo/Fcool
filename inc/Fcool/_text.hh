@@ -27,7 +27,7 @@ namespace Fcool::_text
     template < _cpu::check_any_chr T_Chr >
     using _ptr = _mem::arr< T_Chr >;
     /// @brief base range pointer string type
-    using ptr_base = _ptr<_cpu::chr_base>;
+    using ptr_code = _ptr<_cpu::chr_code>;
     /// @brief wide range pointer string type
     using ptr_wide = _ptr<_cpu::chr_wide>;
     /// @brief UTF-8 pointer string type
@@ -43,7 +43,7 @@ namespace Fcool::_text
     template < _cpu::check_any_chr T_Chr >
     using _str = _mem::arr< const T_Chr >;
     /// @brief base range string pointer type
-    using str_base = _str<_cpu::chr_base>;
+    using str_code = _str<_cpu::chr_code>;
     /// @brief wide range string pointer type
     using str_wide = _str<_cpu::chr_wide>;
     /// @brief UTF-8 string pointer type
@@ -118,11 +118,11 @@ namespace Fcool::_text
         _mem::delete_buffer( _mem::cast_buffer_c( s ) );
     }
     /// @brief allocates a new base-range pointer string
-    /// @warning must be deallocated using free_ptr_base
+    /// @warning must be deallocated using free_ptr_code
     /// @param l length of the new string
     /// @return base-range pointer string
-    inline ptr_base make_ptr_base( len_t l ) noexcept {
-        return _make_ptr<_cpu::chr_base>( l );
+    inline ptr_code make_ptr_code( len_t l ) noexcept {
+        return _make_ptr<_cpu::chr_code>( l );
     }
     /// @brief allocates a new wide-range pointer string
     /// @warning must be deallocated using free_ptr_wide
@@ -160,11 +160,11 @@ namespace Fcool::_text
         return _make_ptr<_cpu::unicode_t>( l );
     }
     /// @brief allocates a new base-range pointer string filled with empty characters
-    /// @warning must be deallocated using free_ptr_base
+    /// @warning must be deallocated using free_ptr_code
     /// @param l length of the new string
     /// @return base-range pointer string
-    inline ptr_base make_ptr_empty_base( len_t l ) noexcept {
-        return _make_ptr_empty<_cpu::chr_base>( l );
+    inline ptr_code make_ptr_empty_code( len_t l ) noexcept {
+        return _make_ptr_empty<_cpu::chr_code>( l );
     }
     /// @brief allocates a new wide-range pointer string filled with empty characters
     /// @warning must be deallocated using free_ptr_wide
@@ -203,8 +203,8 @@ namespace Fcool::_text
     }
     /// @brief frees an allocated base-range pointer string
     /// @param s base-range pointer string
-    inline void free_str_base( str_base s ) noexcept {
-        _free_str<_cpu::chr_base>( s );
+    inline void free_str_code( str_code s ) noexcept {
+        _free_str<_cpu::chr_code>( s );
     }
     /// @brief frees an allocated wide-range pointer string
     /// @param s wide-range pointer string
@@ -381,13 +381,13 @@ namespace Fcool::_text
         return out;
     }
     //
-    template < > constexpr len_t convert( str__quad utf32, ptr_base b_str, len_t len ) {
+    template < > constexpr len_t convert( str__quad utf32, ptr_code b_str, len_t len ) {
         return convert( utf32, ptr__unit(_mem::cast<_cpu::chr__unit>( b_str )), len );
     }
     template < > constexpr len_t convert( str__quad utf32, ptr_wide w_str, len_t len ) {
         return convert( utf32, _ptr<_cpu::__wide_match_t>(_mem::cast<_cpu::__wide_match_t>( w_str )), len );
     }
-    template < > constexpr len_t convert( str_base b_str, ptr__quad utf32, len_t len ) {
+    template < > constexpr len_t convert( str_code b_str, ptr__quad utf32, len_t len ) {
         return convert( str__unit(_mem::cast<const _cpu::chr__unit>( b_str )), utf32, len );
     }
     template < > constexpr len_t convert( str_wide w_str, ptr__quad utf32, len_t len ) {
@@ -464,7 +464,7 @@ namespace Fcool::_text
         len_t length( ) const noexcept { return len; }
     };
     /// @brief base range sized pointer type
-    using view_base_ptr = _view_ptr<_cpu::chr_base>;
+    using view_code_ptr = _view_ptr<_cpu::chr_code>;
     /// @brief wide range sized pointer type
     using view_wide_ptr = _view_ptr<_cpu::chr_wide>;
     /// @brief UTF-8 sized pointer type
@@ -476,7 +476,7 @@ namespace Fcool::_text
     /// @brief primary Unicode sized pointer type
     using view_uniptr = _view_ptr<_cpu::unicode_t>;
     /// @brief base range sized string type
-    using view_base_str = _view_str<_cpu::chr_base>;
+    using view_code_str = _view_str<_cpu::chr_code>;
     /// @brief wide range sized string type
     using view_wide_str = _view_str<_cpu::chr_wide>;
     /// @brief UTF-8 sized string type
@@ -496,8 +496,8 @@ namespace Fcool::_text
         return fraction / scale + ( fraction % scale != zero );
     }
     //
-    constexpr view_base_str pass_str = { "true", unit + unit + unit + unit };
-    constexpr view_base_str fail_str = { "false", unit + unit + unit + unit + unit };
+    constexpr view_code_str pass_str = { "true", unit + unit + unit + unit };
+    constexpr view_code_str fail_str = { "false", unit + unit + unit + unit + unit };
     //
     template < _cpu::check_any_chr T_Chr >
     class _edit
@@ -1035,14 +1035,14 @@ namespace Fcool::_text
         /// @param v value
         /// @return whether the insertion succeeded
         constexpr bool add_at( addr_t p, bool& v ) {
-            if constexpr ( _type::is_same<T_Chr,_cpu::chr_base> )
+            if constexpr ( _type::is_same<T_Chr,_cpu::chr_code> )
                 return add_at( p, v ? pass_str : fail_str );
             else {
-                view_base_str view = v ? pass_str : fail_str;
+                view_code_str view = v ? pass_str : fail_str;
                 const _text::len_t l = view.length( );
                 _ptr<T_Chr> ptr = _mem::create_handle( sizeof(T_Chr) * l, alignof(T_Chr) );
                 if ( ptr ) {
-                    bool r = add_at( p, ptr, convert<_cpu::chr_base,T_Chr>( view.view( ), ptr, l ) );
+                    bool r = add_at( p, ptr, convert<_cpu::chr_code,T_Chr>( view.view( ), ptr, l ) );
                     _mem::delete_handle( ptr, alignof(T_Chr) );
                     return r;
                 }
@@ -1259,14 +1259,14 @@ namespace Fcool::_text
         /// @param v value
         /// @return whether the insertion succeeded
         constexpr bool add_back( bool& v ) {
-            if constexpr ( _type::is_same<T_Chr,_cpu::chr_base> )
+            if constexpr ( _type::is_same<T_Chr,_cpu::chr_code> )
                 return add_back( v ? pass_str : fail_str );
             else {
-                view_base_str view = v ? pass_str : fail_str;
+                view_code_str view = v ? pass_str : fail_str;
                 const _text::len_t l = view.length( );
                 _ptr<T_Chr> ptr = _mem::create_handle( sizeof(T_Chr) * l, alignof(T_Chr) );
                 if ( ptr ) {
-                    bool r = add_back( ptr, convert<_cpu::chr_base,T_Chr>( view.view( ), ptr, l ) );
+                    bool r = add_back( ptr, convert<_cpu::chr_code,T_Chr>( view.view( ), ptr, l ) );
                     _mem::delete_handle( ptr, alignof(T_Chr) );
                     return r;
                 }
@@ -2047,7 +2047,7 @@ namespace Fcool::_text
         //
     };
     /// @brief editable base-character string type
-    using edit_base = _edit<_cpu::chr_base>;
+    using edit_code = _edit<_cpu::chr_code>;
     /// @brief editable wide-character string type
     using edit_wide = _edit<_cpu::chr_wide>;
     /// @brief editable UTF-8 string type
@@ -2059,7 +2059,7 @@ namespace Fcool::_text
     /// @brief editable primary Unicode string type
     using uniedit = _edit<_cpu::unicode_t>;
     //
-    using bstring = edit_base;
+    using cstring = edit_code;
     using wstring = edit_wide;
     //
     /// @brief format a value as hexadecimal using uppercase digits
@@ -2068,8 +2068,8 @@ namespace Fcool::_text
     /// @param min_w minimum output width
     /// @return formatted value
     template < _cpu::check_any_nat T_Nat >
-    constexpr edit_base HEX_u( T_Nat v, len_t min_w = unit ) {
-        edit_base buff;
+    constexpr edit_code HEX_u( T_Nat v, len_t min_w = unit ) {
+        edit_code buff;
         buff.add_back_hex_u( v, min_w );
         return buff;
     }
@@ -2079,8 +2079,8 @@ namespace Fcool::_text
     /// @param min_w minimum output width
     /// @return formatted value
     template < _cpu::check_any_int T_Int >
-    constexpr edit_base HEX_u( T_Int v, len_t min_w = unit ) {
-        edit_base buff;
+    constexpr edit_code HEX_u( T_Int v, len_t min_w = unit ) {
+        edit_code buff;
         buff.add_back_hex_u( v, min_w );
         return buff;
     }
@@ -2090,8 +2090,8 @@ namespace Fcool::_text
     /// @param prec number of fractional digits
     /// @return formatted value
     template < _cpu::check_any_flt T_Flt >
-    constexpr edit_base HEX_u( T_Flt v, size_t prec = __flt_default_prec( _cpu::val_flt_fraction<T_Flt>, hexa ) ) {
-        edit_base buff;
+    constexpr edit_code HEX_u( T_Flt v, size_t prec = __flt_default_prec( _cpu::val_flt_fraction<T_Flt>, hexa ) ) {
+        edit_code buff;
         buff.add_back_hex_u( v, prec );
         return buff;
     }
@@ -2101,8 +2101,8 @@ namespace Fcool::_text
     /// @param min_w minimum output width
     /// @return formatted value
     template < _cpu::check_any_nat T_Nat >
-    constexpr edit_base HEX_l( T_Nat v, len_t min_w = unit ) {
-        edit_base buff;
+    constexpr edit_code HEX_l( T_Nat v, len_t min_w = unit ) {
+        edit_code buff;
         buff.add_back_hex_l( v, min_w );
         return buff;
     }
@@ -2112,8 +2112,8 @@ namespace Fcool::_text
     /// @param min_w minimum output width
     /// @return formatted value
     template < _cpu::check_any_int T_Int >
-    constexpr edit_base HEX_l( T_Int v, len_t min_w = unit ) {
-        edit_base buff;
+    constexpr edit_code HEX_l( T_Int v, len_t min_w = unit ) {
+        edit_code buff;
         buff.add_back_hex_l( v, min_w );
         return buff;
     }
@@ -2123,8 +2123,8 @@ namespace Fcool::_text
     /// @param prec number of fractional digits
     /// @return formatted value
     template < _cpu::check_any_flt T_Flt >
-    constexpr edit_base HEX_l( T_Flt v, size_t prec = __flt_default_prec( _cpu::val_flt_fraction<T_Flt>, hexa ) ) {
-        edit_base buff;
+    constexpr edit_code HEX_l( T_Flt v, size_t prec = __flt_default_prec( _cpu::val_flt_fraction<T_Flt>, hexa ) ) {
+        edit_code buff;
         buff.add_back_hex_l( v, prec );
         return buff;
     }
@@ -2135,8 +2135,8 @@ namespace Fcool::_text
     /// @param min_w minimum output width
     /// @return formatted value
     template < _cpu::check_any_nat T_Nat >
-    constexpr edit_base HEX( T_Nat v, bool upper = fail, len_t min_w = unit ) {
-        edit_base buff;
+    constexpr edit_code HEX( T_Nat v, bool upper = fail, len_t min_w = unit ) {
+        edit_code buff;
         if ( upper )
             buff.add_back_hex_u( v, min_w );
         else
@@ -2150,8 +2150,8 @@ namespace Fcool::_text
     /// @param min_w minimum output width
     /// @return formatted value
     template < _cpu::check_any_int T_Int >
-    constexpr edit_base HEX( T_Int v, bool upper = fail, len_t min_w = unit ) {
-        edit_base buff;
+    constexpr edit_code HEX( T_Int v, bool upper = fail, len_t min_w = unit ) {
+        edit_code buff;
         if ( upper )
             buff.add_back_hex_u( v, min_w );
         else
@@ -2165,8 +2165,8 @@ namespace Fcool::_text
     /// @param prec number of fractional digits
     /// @return formatted value
     template < _cpu::check_any_flt T_Flt >
-    constexpr edit_base HEX( T_Flt v, bool upper = fail, size_t prec = __flt_default_prec( _cpu::val_flt_fraction<T_Flt>, hexa ) ) {
-        edit_base buff;
+    constexpr edit_code HEX( T_Flt v, bool upper = fail, size_t prec = __flt_default_prec( _cpu::val_flt_fraction<T_Flt>, hexa ) ) {
+        edit_code buff;
         if ( upper )
             buff.add_back_hex_u( v, prec );
         else
@@ -2179,8 +2179,8 @@ namespace Fcool::_text
     /// @param min_w minimum output width
     /// @return formatted value
     template < _cpu::check_any_nat T_Nat >
-    constexpr edit_base DEC( T_Nat v, len_t min_w = unit ) {
-        edit_base buff;
+    constexpr edit_code DEC( T_Nat v, len_t min_w = unit ) {
+        edit_code buff;
         buff.add_back_dec( v, min_w );
         return buff;
     }
@@ -2190,8 +2190,8 @@ namespace Fcool::_text
     /// @param min_w minimum output width
     /// @return formatted value
     template < _cpu::check_any_int T_Int >
-    constexpr edit_base DEC( T_Int v, len_t min_w = unit ) {
-        edit_base buff;
+    constexpr edit_code DEC( T_Int v, len_t min_w = unit ) {
+        edit_code buff;
         buff.add_back_dec( v, min_w );
         return buff;
     }
@@ -2201,8 +2201,8 @@ namespace Fcool::_text
     /// @param prec number of fractional digits
     /// @return formatted value
     template < _cpu::check_any_flt T_Flt >
-    constexpr edit_base DEC( T_Flt v, size_t prec = __flt_default_prec( _cpu::val_flt_fraction<T_Flt>, deci ) ) {
-        edit_base buff;
+    constexpr edit_code DEC( T_Flt v, size_t prec = __flt_default_prec( _cpu::val_flt_fraction<T_Flt>, deci ) ) {
+        edit_code buff;
         buff.add_back_dec( v, prec );
         return buff;
     }
@@ -2212,8 +2212,8 @@ namespace Fcool::_text
     /// @param min_w minimum output width
     /// @return formatted value
     template < _cpu::check_any_nat T_Nat >
-    constexpr edit_base OCT( T_Nat v, len_t min_w = unit ) {
-        edit_base buff;
+    constexpr edit_code OCT( T_Nat v, len_t min_w = unit ) {
+        edit_code buff;
         buff.add_back_oct( v, min_w );
         return buff;
     }
@@ -2223,8 +2223,8 @@ namespace Fcool::_text
     /// @param min_w minimum output width
     /// @return formatted value
     template < _cpu::check_any_int T_Int >
-    constexpr edit_base OCT( T_Int v, len_t min_w = unit ) {
-        edit_base buff;
+    constexpr edit_code OCT( T_Int v, len_t min_w = unit ) {
+        edit_code buff;
         buff.add_back_oct( v, min_w );
         return buff;
     }
@@ -2234,8 +2234,8 @@ namespace Fcool::_text
     /// @param prec number of fractional digits
     /// @return formatted value
     template < _cpu::check_any_flt T_Flt >
-    constexpr edit_base OCT( T_Flt v, size_t prec = __flt_default_prec( _cpu::val_flt_fraction<T_Flt>, octa ) ) {
-        edit_base buff;
+    constexpr edit_code OCT( T_Flt v, size_t prec = __flt_default_prec( _cpu::val_flt_fraction<T_Flt>, octa ) ) {
+        edit_code buff;
         buff.add_back_oct( v, prec );
         return buff;
     }
@@ -2245,8 +2245,8 @@ namespace Fcool::_text
     /// @param min_w minimum output width
     /// @return formatted value
     template < _cpu::check_any_nat T_Nat >
-    constexpr edit_base BIN( T_Nat v, len_t min_w = unit ) {
-        edit_base buff;
+    constexpr edit_code BIN( T_Nat v, len_t min_w = unit ) {
+        edit_code buff;
         buff.add_back_bin( v, min_w );
         return buff;
     }
@@ -2256,8 +2256,8 @@ namespace Fcool::_text
     /// @param min_w minimum output width
     /// @return formatted value
     template < _cpu::check_any_int T_Int >
-    constexpr edit_base BIN( T_Int v, len_t min_w = unit ) {
-        edit_base buff;
+    constexpr edit_code BIN( T_Int v, len_t min_w = unit ) {
+        edit_code buff;
         buff.add_back_bin( v, min_w );
         return buff;
     }
@@ -2267,24 +2267,24 @@ namespace Fcool::_text
     /// @param prec number of fractional digits
     /// @return formatted value
     template < _cpu::check_any_flt T_Flt >
-    constexpr edit_base BIN( T_Flt v, size_t prec = __flt_default_prec( _cpu::val_flt_fraction<T_Flt>, dual ) ) {
-        edit_base buff;
+    constexpr edit_code BIN( T_Flt v, size_t prec = __flt_default_prec( _cpu::val_flt_fraction<T_Flt>, dual ) ) {
+        edit_code buff;
         buff.add_back_bin( v, prec );
         return buff;
     }
     /// @brief format a boolean as a binary digit
     /// @param v value to format
     /// @return `1` for true or `0` for false
-    constexpr edit_base BIN( bool v ) {
-        edit_base buff;
-        buff.add_back( _cpu::chr_base{ v ? '1' : '0' } );
+    constexpr edit_code BIN( bool v ) {
+        edit_code buff;
+        buff.add_back( _cpu::chr_code{ v ? '1' : '0' } );
         return buff;
     }
     /// @brief format a boolean as a textual value
     /// @param v value to format
     /// @return the corresponding pass or fail string
-    constexpr edit_base BOOL( bool v ) {
-        edit_base buff;
+    constexpr edit_code BOOL( bool v ) {
+        edit_code buff;
         buff.add_back( v ? pass_str : fail_str );
         return buff;
     }

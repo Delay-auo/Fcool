@@ -218,20 +218,20 @@ namespace Fcool::console
         return pass;
     }
     //
-    _text::len_t write_msg( _text::str_base msg, _text::len_t len ) noexcept {
+    _text::len_t write_msg( _text::str_code msg, _text::len_t len ) noexcept {
         return fwh_write_ANSI( impl_say, CP_ACP, static_cast<const void*>( _mem::cast_buffer_c( msg ) ), len );
     }
     _text::len_t write_msg( _text::str_wide msg, _text::len_t len ) noexcept {
         return fwh_write_WIDE( impl_say, static_cast<const void*>( _mem::cast_buffer_c( msg ) ), len );
     }
-    _text::len_t write_err( _text::str_base msg, _text::len_t len ) noexcept {
+    _text::len_t write_err( _text::str_code msg, _text::len_t len ) noexcept {
         return write_msg( msg, len );
     }
     _text::len_t write_err( _text::str_wide msg, _text::len_t len ) noexcept {
         return write_msg( msg, len );
     }
-    _text::len_t read_msg( _text::ptr_base out, _text::len_t len ) noexcept {
-        _text::len_t r = fwh_read_ANSI( impl_ask, CP_UTF8, static_cast<_cpu::chr_base*>(out), len );
+    _text::len_t read_msg( _text::ptr_code out, _text::len_t len ) noexcept {
+        _text::len_t r = fwh_read_ANSI( impl_ask, CP_UTF8, static_cast<_cpu::chr_code*>(out), len );
         if (
             r >= 2
             && out[r - 2] == u8'\r'
@@ -250,7 +250,7 @@ namespace Fcool::console
     }
     //
     bool __read_key_default_is_wide = false;
-    bool _read_key_base( key_info_t& out ) noexcept {
+    bool _read_key_code( key_info_t& out ) noexcept {
         return fwh_readkey_ANSI( impl_ask, out );
     }
     bool _read_key_wide( key_info_t& out ) noexcept {

@@ -119,8 +119,8 @@ static_assert( sizeof(flt_double) == octa );
 /// @brief ### extended precision float register
 using flt_extent = long double;
 /// @brief ### base range character register
-using chr_base = char;
-static_assert( sizeof(chr_base) == unit );
+using chr_code = char;
+static_assert( sizeof(chr_code) == unit );
 /// @brief ### wide range character register
 using chr_wide = wchar_t;
 /// @brief check if chr_wide is dual sized;
@@ -272,7 +272,7 @@ using _reg_group_flt = _type::group<
 >;
 /// @brief ### meta type group including all the character registers
 using _reg_group_chr = _type::group<
-    chr_base,
+    chr_code,
     chr_wide
 >;
 #pragma endregion
@@ -508,7 +508,7 @@ union _union_flt
 /// @brief ### character register type union
 union _union_chr
 {
-    chr_base info;
+    chr_code code;
     chr_wide wide;
 };
 
@@ -566,7 +566,7 @@ union union_flt
 /// @brief ### character type union
 union union_chr
 {
-    chr_base info;
+    chr_code code;
     chr_wide wide;
 #   if FCOOLMACRO_CHAR8
     chr__unit unit;
